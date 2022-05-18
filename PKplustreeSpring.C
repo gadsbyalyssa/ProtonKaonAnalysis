@@ -1,0 +1,728 @@
+#include "TROOT.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "TBrowser.h"
+#include "TH2.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <TH1F.h>
+#include <TMath.h>
+#include <fstream>
+#include <iostream>
+
+void PKplustreeSpring(){
+    Float_t runnum, evnum, helicity,  e_p, eta1, eta, e_phi, Q2, W, phi2, phi1, x, y, zeta, xF, pT1, pT2, Delta_phi, z1, z2, xF1, xF2, pTpT, Mx1, Mx2, Delta_eta, p1_p, p2_p, vz_e,vz_p1,vz_p2, eta2, Mx;
+
+
+    FILE *fp = fopen("PKSpring2019Skim4.txt","r");
+    TFile *hfile = hfile = TFile::Open("PKplus2.root","RECREATE");
+
+    TTree *outTree = new TTree("T","kinematics tree");
+
+
+    outTree->Branch("runnum",&runnum,"runnum/F");
+    outTree->Branch("evnum",&evnum,"evnum/F");
+    outTree->Branch("helicity", &helicity,"helicity/F");
+    outTree->Branch("e_p",&e_p,"e_p/F");
+    outTree->Branch("eta1",&eta1,"eta1/F");
+    outTree->Branch("eta",&eta,"eta/F");
+    outTree->Branch("e_phi",&e_phi,"e_phi/F");
+    outTree->Branch("Q2",&Q2,"Q2/F");
+    outTree->Branch("W",&W,"W/F");
+    outTree->Branch("phi2",&phi2,"phi2/F");
+    outTree->Branch("phi1",&phi1,"phi1/F");
+    outTree->Branch("x",&x,"x/F");
+    outTree->Branch("y",&y,"y/F");
+    outTree->Branch("zeta",&zeta,"zeta/F");
+    outTree->Branch("xF",&xF,"xF/F");
+    outTree->Branch("pT1",&pT1,"pT1/F");
+    outTree->Branch("pT2",&pT2,"pT2/F");
+    outTree->Branch("Delta_phi",&Delta_phi,"Delta_phi/F");
+    outTree->Branch("z1",&z1,"z1/F");
+    outTree->Branch("z2",&z2,"z2/F");
+    outTree->Branch("xF1",&xF1,"xF1/F");
+    outTree->Branch("xF2",&xF2,"xF2/F");
+    outTree->Branch("pTpT",&pTpT,"pTpT/F");
+    outTree->Branch("Mx1",&Mx1,"Mx1/F");
+    outTree->Branch("Mx2",&Mx2,"Mx2/F");
+    outTree->Branch("Delta_eta",&Delta_eta,"Delta_eta/F");
+    outTree->Branch("p1_p",&p1_p,"p1_p/F");
+    outTree->Branch("p2_p",&p2_p,"p2_p/F");
+    outTree->Branch("vz_e",&vz_e,"vz_e/F");
+    outTree->Branch("vz_p1",&vz_p1,"vz_p1/F");
+    outTree->Branch("vz_p2",&vz_p2,"vz_p2/F");
+    outTree->Branch("eta2",&eta2,"eta2/F");
+    outTree->Branch("Mx",&Mx,"Mx/F");
+
+
+
+    for(int k=0; k<2106813; k++){
+
+    fscanf(fp, "%f %f %f %f %f %f %f ", &runnum, &evnum, &helicity, &e_p, &eta1, &eta, &e_phi);
+
+    fscanf(fp, " %f %f %f %f %f %f %f %lf ", &Q2, &W, &phi2, &phi1, &x, &y, &zeta, &xF);
+
+    fscanf(fp, " %f %f %f %f %f %f %f %f %f ", &pT1, &pT2, &Delta_phi, &z1, &z2, &xF1, &xF2, &pTpT, &Mx1);
+
+    fscanf(fp, " %f %f %f %f %f %f %f %f %f ", &Mx2, &Delta_eta, &p1_p, &p2_p, &vz_e, &vz_p1, &vz_p2, &eta2, &Mx);
+
+    outTree->Fill();
+
+    }
+
+//outTree->Print();
+outTree->Write();
+fclose(fp);
+hfile->Write();
+///////////////////////////////////////////////////////////////
+TCut NegHeli = ("helicity == -1");
+TCut PosHeli = ("helicity == 1");
+TCut DifHeli = ("(helicity == 1) - (helicity == -1)");
+TCut SumHeli = ("(helicity == 1) + (helicity == -1)");
+TCut Asym = ("((helicity == 1) - (helicity == -1)) / ((helicity == 1) + (helicity == -1))");
+TString sinphi("2*sin(phi2)");
+TString sinphi2("2*sin(phi1)");
+TString sinphi3("2*sin(Delta_phi)");
+TString pTpTM1("pT1*pT2");
+TCut Mxg = ("Mx>1 && y<0.75 && xF1<0 && xF2>0&& -10<vz_e&&vz_e<3 && 1.2<p2_p&&p2_p<3 && 0.5<p1_p");
+TCut Mxa = ("Mx>0 && Mx<0.33");
+TCut Mxb = ("Mx>0.33 && Mx<0.67");
+TCut Mxc = ("Mx>0.67 && Mx<1.00");
+TCut Mxd = ("Mx>1.00 && Mx<1.33");
+TCut Mxe = ("Mx>1.33 && Mx<1.67");
+TCut Mxf = ("Mx>1.67 && Mx<2.00");
+///////////////////////////////////////////////////////////////
+TCanvas*c01 = new TCanvas("c01", "PKplus", 1600,1100);
+c01->Divide(1,1);
+c01->Print("Mxpk.pdf[");
+TH1F*Mxpk = new TH1F("Mxpk","Mxpk",100,-0.3, 2.3);
+c01->cd(1);
+Mxpk->GetXaxis()->SetTitle("Mx eProtonKaon");
+Mxpk->GetXaxis()->SetTitleSize(0.03);
+Mxpk->GetXaxis()->SetLabelSize(0.02);
+Mxpk->GetXaxis()->SetTitleOffset(1);
+Mxpk->GetYaxis()->SetTitle("Counts");
+Mxpk->GetYaxis()->SetTitleSize(0.035);
+Mxpk->GetYaxis()->SetLabelSize(0.02);
+Mxpk->GetYaxis()->SetTitleOffset(0.9);
+Mxpk->SetStats(0);
+outTree->Draw("Mx>>Mxpk");
+///////////////////////////////////////////////////////////////
+TCanvas*c02 = new TCanvas("c02", "PKplus", 1600,1100);
+c02->Divide(1,1);
+c02->Print("Protonphi.pdf[");
+TH1F*Pphi = new TH1F("Pphi","Pphi",100,0, 6.2);
+c02->cd(1);
+Pphi->GetXaxis()->SetTitle("Proton Phi");
+Pphi->GetXaxis()->SetTitleSize(0.03);
+Pphi->GetXaxis()->SetTitleOffset(1.3);
+Pphi->GetXaxis()->SetLabelSize(0.04);
+Pphi->GetYaxis()->SetTitle("Counts");
+Pphi->GetYaxis()->SetTitleSize(0.04);
+Pphi->GetYaxis()->SetLabelSize(0.025);
+Pphi->GetYaxis()->SetTitleOffset(0.85);
+Pphi->SetStats(0);
+outTree->Draw("phi1>>Pphi", Mxg);
+///////////////////////////////////////////////////////////////
+TCanvas*c03 = new TCanvas("c03", "PKplus", 1600,1100);
+c03->Divide(1,1);
+c03->Print("Kaonphi.pdf[");
+TH1F*Kphi = new TH1F("Kphi","Kphi",100,0, 6.2);
+c03->cd(1);
+Kphi->GetXaxis()->SetTitle("Kaon Phi");
+Kphi->GetXaxis()->SetTitleSize(0.03);
+Kphi->GetXaxis()->SetTitleOffset(1.3);
+Kphi->GetXaxis()->SetLabelSize(0.04);
+Kphi->GetYaxis()->SetTitle("Counts");
+Kphi->GetYaxis()->SetTitleSize(0.04);
+Kphi->GetYaxis()->SetLabelSize(0.025);
+Kphi->GetYaxis()->SetTitleOffset(0.85);
+Kphi->SetStats(0);
+outTree->Draw("phi2>>Kphi", Mxg);
+///////////////////////////////////////////////////////////////
+TCanvas*c04 = new TCanvas("c04", "PKplus", 1600,1100);
+c04->Divide(1,1);
+c04->Print("Deltaphi.pdf[");
+TH1F*Dphi = new TH1F("Dphi","Dphi",100,0, 6.2);
+c04->cd(1);
+Dphi->GetXaxis()->SetTitle("Delta Phi");
+Dphi->GetXaxis()->SetTitleSize(0.03);
+Dphi->GetXaxis()->SetTitleOffset(1.3);
+Dphi->GetXaxis()->SetLabelSize(0.04);
+Dphi->GetYaxis()->SetTitle("Counts");
+Dphi->GetYaxis()->SetTitleSize(0.04);
+Dphi->GetYaxis()->SetLabelSize(0.025);
+Dphi->GetYaxis()->SetTitleOffset(0.85);
+Dphi->SetStats(0);
+outTree->Draw("Delta_phi>>Dphi", Mxg);
+///////////////////////////////////////////////////////////////
+TCanvas*c05 = new TCanvas("c05", "PKplus", 1600,1100);
+c05->Divide(1,1);
+c05->Print("DeltaphiPH.pdf[");
+TH1F*DphiPH = new TH1F("DphiPH","DphiPH",100,0, 6.2);
+c05->cd(1);
+DphiPH->GetXaxis()->SetTitle("Delta Phi (positive helicity)");
+DphiPH->GetXaxis()->SetTitleSize(0.03);
+DphiPH->GetXaxis()->SetTitleOffset(1.3);
+DphiPH->GetXaxis()->SetLabelSize(0.04);
+DphiPH->GetYaxis()->SetTitle("Counts");
+DphiPH->GetYaxis()->SetTitleSize(0.04);
+DphiPH->GetYaxis()->SetLabelSize(0.025);
+DphiPH->GetYaxis()->SetTitleOffset(0.85);
+DphiPH->SetStats(0);
+outTree->Draw("Delta_phi>>DphiPH", PosHeli && Mxg);
+///////////////////////////////////////////////////////////////
+TCanvas*c06 = new TCanvas("c06", "PKplus", 1600,1100);
+c06->Divide(1,1);
+c06->Print("DeltaphiNH.pdf[");
+TH1F*DphiNH = new TH1F("DphiNH","DphiNH",100,0, 6.2);
+c06->cd(1);
+DphiNH->GetXaxis()->SetTitle("Delta Phi (negative helicity)");
+DphiNH->GetXaxis()->SetTitleSize(0.03);
+DphiNH->GetXaxis()->SetTitleOffset(1.3);
+DphiNH->GetXaxis()->SetLabelSize(0.04);
+DphiNH->GetYaxis()->SetTitle("Counts");
+DphiNH->GetYaxis()->SetTitleSize(0.04);
+DphiNH->GetYaxis()->SetLabelSize(0.025);
+DphiNH->GetYaxis()->SetTitleOffset(0.85);
+DphiNH->SetStats(0);
+outTree->Draw("Delta_phi>>DphiNH", NegHeli && Mxg);
+///////////////////////////////////////////////////////////////
+TCanvas*c07 = new TCanvas("c07", "PKplus", 1600,1100);
+c07->Divide(1,1);
+c07->Print("DeltaphiDif.pdf[");
+TH1F*DphiDif = new TH1F("DphiDif","DphiDif",100,0, 6.2);
+c07->cd(1);
+DphiDif->GetXaxis()->SetTitle("Delta Phi (Difference Helicity)");
+DphiDif->GetXaxis()->SetTitleSize(0.03);
+DphiDif->GetXaxis()->SetTitleOffset(1.3);
+DphiDif->GetXaxis()->SetLabelSize(0.04);
+DphiDif->GetYaxis()->SetTitle("Counts");
+DphiDif->GetYaxis()->SetTitleSize(0.04);
+DphiDif->GetYaxis()->SetLabelSize(0.025);
+DphiDif->GetYaxis()->SetTitleOffset(0.85);
+DphiDif->SetStats(0);
+outTree->Draw("Delta_phi>>DphiDif", DifHeli && Mxg);
+///////////////////////////////////////////////////////////////
+TCanvas*c08 = new TCanvas("c08", "PKplus", 1600,1100);
+c08->Divide(1,1);
+c08->Print("DeltaphiSum.pdf[");
+TH1F*DphiSum = new TH1F("DphiSum","DphiSum",100,0, 6.2);
+c08->cd(1);
+DphiSum->GetXaxis()->SetTitle("Delta Phi (Sum Helicity)");
+DphiSum->GetXaxis()->SetTitleSize(0.03);
+DphiSum->GetXaxis()->SetTitleOffset(1.3);
+DphiSum->GetXaxis()->SetLabelSize(0.04);
+DphiSum->GetYaxis()->SetTitle("Counts");
+DphiSum->GetYaxis()->SetTitleSize(0.04);
+DphiSum->GetYaxis()->SetLabelSize(0.025);
+DphiSum->GetYaxis()->SetTitleOffset(0.85);
+DphiSum->SetStats(0);
+outTree->Draw("Delta_phi>>DphiSum", SumHeli && Mxg);
+///////////////////////////////////////////////////////////////
+TCanvas*c09 = new TCanvas("c09", "PKplus", 1600,1100);
+c09->Divide(1,1);
+c09->Print("AsymNC.pdf[");
+TH1F*AsymNC = new TH1F("AsymNC","AsymNC",100,0, 6.2);
+c09->cd(1);
+AsymNC->GetXaxis()->SetTitle("Delta phi");
+AsymNC->GetXaxis()->SetTitleSize(0.03);
+AsymNC->GetXaxis()->SetTitleOffset(1.3);
+AsymNC->GetXaxis()->SetLabelSize(0.04);
+AsymNC->GetYaxis()->SetTitle("Asymmetry Value");
+AsymNC->GetYaxis()->SetTitleSize(0.04);
+AsymNC->GetYaxis()->SetLabelSize(0.025);
+AsymNC->GetYaxis()->SetTitleOffset(0.85);
+AsymNC->GetYaxis()->SetRangeUser(-0.03,0.03);
+AsymNC->SetStats(0);
+outTree->Draw("Delta_phi>>AsymNC", Asym);
+///////////////////////////////////////////////////////////////
+TCanvas*c010 = new TCanvas("c010", "PKplus", 1600,1100);
+c010->Divide(1,1);
+c010->Print("pTpTMx3D.pdf[");
+TH2F*pTpTMx = new TH2F("pTpTMx","pTpTMx",100, 0,50,0,2.3);
+c010->cd(1);
+pTpTMx->GetXaxis()->SetTitle("pTpT");
+pTpTMx->GetXaxis()->SetTitleSize(0.05);
+//pTpTMx->GetXaxis()->SetTitleOffset(1.3);
+pTpTMx->GetXaxis()->SetLabelSize(0.04);
+pTpTMx->GetYaxis()->SetTitle("Mx");
+pTpTMx->GetYaxis()->SetTitleSize(0.05);
+pTpTMx->GetYaxis()->SetLabelSize(0.03);
+//pTpTMx->GetYaxis()->SetTitleOffset(1.3);
+pTpTMx->SetStats(0);
+outTree->Draw("Mx:pTpT>>pTpTMx");
+pTpTMx->Draw("SURF");
+TCanvas*c021 = new TCanvas("c021", "PKplus", 1600,1100);
+c021->Divide(1,1);
+c021->Print("pTpTMx.pdf[");
+c021->cd(1);
+pTpTMx->Draw("COL");
+///////////////////////////////////////////////////////////////
+TCanvas*c011 = new TCanvas("c011", "PKplus", 1600,1100);
+c011->Divide(1,1);
+c011->Print("PtPt.pdf[");
+TH1F*PtPt = new TH1F("PtPt","PtPt",100, 0,1);
+c011->cd(1);
+PtPt->GetXaxis()->SetTitle("pTpT");
+PtPt->GetXaxis()->SetTitleSize(0.05);
+PtPt->GetXaxis()->SetTitleOffset(0.8);
+PtPt->GetXaxis()->SetLabelSize(0.04);
+PtPt->GetYaxis()->SetTitle("Counts");
+PtPt->GetYaxis()->SetTitleSize(0.05);
+PtPt->GetYaxis()->SetLabelSize(0.025);
+PtPt->SetStats(0);
+outTree->Draw("pTpT>>PtPt", Mxg);
+///////////////////////////////////////////////////////////////
+TCanvas*c012 = new TCanvas("c012", "PKplus", 1600,1100);
+c012->Divide(1,1);
+c012->Print("PtKaon.pdf[");
+TH1F*PtKaon = new TH1F("PtKaon","PtKaon",100, 0,1);
+c012->cd(1);
+PtKaon->GetXaxis()->SetTitle("pT Kaon");
+PtKaon->GetXaxis()->SetTitleSize(0.03);
+PtKaon->GetXaxis()->SetTitleOffset(1.3);
+PtKaon->GetXaxis()->SetLabelSize(0.04);
+PtKaon->GetYaxis()->SetTitle("Counts");
+PtKaon->GetYaxis()->SetTitleSize(0.04);
+PtKaon->GetYaxis()->SetLabelSize(0.025);
+PtKaon->SetStats(0);
+outTree->Draw("pT2>>PtKaon");
+///////////////////////////////////////////////////////////////
+TCanvas*c013 = new TCanvas("c013", "PKplus", 1600,1100);
+c013->Divide(1,1);
+c013->Print("PtPro.pdf[");
+TH1F*PtPro = new TH1F("PtPro","PtPro",100, 0,1);
+c013->cd(1);
+PtPro->GetXaxis()->SetTitle("pT Proton");
+PtPro->GetXaxis()->SetTitleSize(0.03);
+PtPro->GetXaxis()->SetTitleOffset(1.3);
+PtPro->GetXaxis()->SetLabelSize(0.04);
+PtPro->GetYaxis()->SetTitle("Counts");
+PtPro->GetYaxis()->SetTitleSize(0.04);
+PtPro->GetYaxis()->SetLabelSize(0.025);
+PtPro->SetStats(0);
+outTree->Draw("pT1>>PtPro");
+///////////////////////////////////////////////////////////////
+TCanvas*c014 = new TCanvas("c014", "PKplus", 1600,1100);
+c014->Divide(1,1);
+c014->Print("PtSinP3D.pdf[");
+TH2F*PtSinP = new TH2F("PtSinP","PtSinP",100,0,50,-2,2);
+c014->cd(1);
+PtSinP->GetXaxis()->SetTitle("pT Proton");
+PtSinP->GetXaxis()->SetTitleSize(0.03);
+PtSinP->GetXaxis()->SetTitleOffset(1.8);
+PtSinP->GetXaxis()->SetLabelSize(0.04);
+PtSinP->GetYaxis()->SetTitle("2<sin(phi proton)>");
+PtSinP->GetYaxis()->SetTitleSize(0.04);
+PtSinP->GetYaxis()->SetTitleOffset(1.3);
+PtSinP->GetYaxis()->SetLabelSize(0.025);
+PtSinP->SetStats(0);
+outTree->Draw(sinphi+":pT1>>PtSinP");
+PtSinP->Draw("SURF");
+TCanvas*c018 = new TCanvas("c018", "PKplus", 1600,1100);
+c018->Divide(1,1);
+c018->Print("PtSinP.pdf[");
+c018->cd(1);
+PtSinP->Draw("COL");
+///////////////////////////////////////////////////////////////
+TCanvas*c023 = new TCanvas("c023", "PKplus", 1600,1100);
+c023->Divide(1,1);
+c023->Print("PtSinK3D.pdf[");
+TH2F*PtSinK = new TH2F("PtSinK","PtSinK",100,0,50,-2,2);
+c023->cd(1);
+PtSinK->GetXaxis()->SetTitle("pT Kaon");
+PtSinK->GetXaxis()->SetTitleSize(0.03);
+PtSinK->GetXaxis()->SetTitleOffset(1.8);
+PtSinK->GetXaxis()->SetLabelSize(0.04);
+PtSinK->GetYaxis()->SetTitle("2<sin(phi kaon)>");
+PtSinK->GetYaxis()->SetTitleSize(0.04);
+PtSinK->GetYaxis()->SetTitleOffset(1.3);
+PtSinK->GetYaxis()->SetLabelSize(0.025);
+PtSinK->SetStats(0);
+outTree->Draw(sinphi2+":pT2>>PtSinK");
+PtSinK->Draw("SURF");
+TCanvas*c024 = new TCanvas("c024", "PKplus", 1600,1100);
+c024->Divide(1,1);
+c024->Print("PtSinK.pdf[");
+c024->cd(1);
+PtSinK->Draw("COL");
+///////////////////////////////////////////////////////////////
+TCanvas*c025 = new TCanvas("c025", "PKplus", 1600,1100);
+c025->Divide(1,1);
+c025->Print("PtPtSin3D.pdf[");
+TH2F*PtSinK = new TH2F("PtPtSin","PtPtSin",100,0,50,-2,2);
+c025->cd(1);
+PtPtSin->GetXaxis()->SetTitle("pTpT");
+PtPtSin->GetXaxis()->SetTitleSize(0.03);
+PtPtSin->GetXaxis()->SetTitleOffset(1.8);
+PtPtSin->GetXaxis()->SetLabelSize(0.04);
+PtPtSin->GetYaxis()->SetTitle("2<sin(Delta phi)>");
+PtPtSin->GetYaxis()->SetTitleSize(0.04);
+PtPtSin->GetYaxis()->SetTitleOffset(1.3);
+PtPtSin->GetYaxis()->SetLabelSize(0.025);
+PtPtSin->SetStats(0);
+outTree->Draw(sinphi3+":pTpT>>PtPtSin");
+PtPtSin->Draw("SURF");
+TCanvas*c026 = new TCanvas("c026", "PKplus", 1600,1100);
+c026->Divide(1,1);
+c026->Print("PtPtSin.pdf[");
+c026->cd(1);
+PtPtSin->Draw("COL");
+///////////////////////////////////////////////////////////////
+TCanvas*c015 = new TCanvas("c015", "PKplus", 1600,1100);
+c015->Divide(1,1);
+c015->Print("MxPtSin.pdf[");
+TH3F*MxPtSin = new TH3F("MxPtSin","MxPtSin", 10, 0, 1, 10, 0, 2.5, 10, -2, 2);
+c015->cd(1);
+MxPtSin->GetXaxis()->SetTitle("pT Proton");
+MxPtSin->GetXaxis()->SetTitleSize(0.03);
+MxPtSin->GetXaxis()->SetTitleOffset(1.8);
+MxPtSin->GetXaxis()->SetLabelSize(0.04);
+MxPtSin->GetYaxis()->SetTitle("Mx");
+MxPtSin->GetYaxis()->SetTitleOffset(1.6);
+MxPtSin->GetYaxis()->SetTitleSize(0.04);
+MxPtSin->GetYaxis()->SetLabelSize(0.025);
+MxPtSin->GetZaxis()->SetTitle("2<sin(phi proton)>");
+MxPtSin->GetZaxis()->SetTitleSize(0.04);
+MxPtSin->GetZaxis()->SetLabelSize(0.025);
+MxPtSin->SetStats(0);
+outTree->Draw(sinphi+":Mx:pT1>>MxPtSin");
+MxPtSin->Draw("BOX");
+///////////////////////////////////////////////////////////////
+TCanvas*c029 = new TCanvas("c029", "PKplus", 1600,1100);
+c029->Divide(1,1);
+c029->Print("MxPtSinK.pdf[");
+TH3F*MxPtSin = new TH3F("MxPtSinK","MxPtSinK", 10, 0, 1, 10, 0, 2.5, 10, -2, 2);
+c029->cd(1);
+MxPtSinK->GetXaxis()->SetTitle("pT Kaon");
+MxPtSinK->GetXaxis()->SetTitleSize(0.03);
+MxPtSinK->GetXaxis()->SetTitleOffset(1.8);
+MxPtSinK->GetXaxis()->SetLabelSize(0.04);
+MxPtSinK->GetYaxis()->SetTitle("Mx");
+MxPtSinK->GetYaxis()->SetTitleOffset(1.6);
+MxPtSinK->GetYaxis()->SetTitleSize(0.04);
+MxPtSinK->GetYaxis()->SetLabelSize(0.025);
+MxPtSinK->GetZaxis()->SetTitle("2<sin(phi kaon)>");
+MxPtSinK->GetZaxis()->SetTitleSize(0.04);
+MxPtSinK->GetZaxis()->SetLabelSize(0.025);
+MxPtSinK->SetStats(0);
+outTree->Draw(sinphi2+":Mx:pT2>>MxPtSinK");
+MxPtSinK->Draw("BOX");
+///////////////////////////////////////////////////////////////
+TCanvas*c030 = new TCanvas("c030", "PKplus", 1600,1100);
+c030->Divide(1,1);
+c030->Print("MxPtSinD.pdf[");
+TH3F*MxPtSin = new TH3F("MxPtSinD","MxPtSinD", 10, 0, 1, 10, 0, 2.5, 10, -2, 2);
+c030->cd(1);
+MxPtSinD->GetXaxis()->SetTitle("pTpT");
+MxPtSinD->GetXaxis()->SetTitleSize(0.03);
+MxPtSinD->GetXaxis()->SetTitleOffset(1.8);
+MxPtSinD->GetXaxis()->SetLabelSize(0.04);
+MxPtSinD->GetYaxis()->SetTitle("Mx");
+MxPtSinD->GetYaxis()->SetTitleOffset(1.6);
+MxPtSinD->GetYaxis()->SetTitleSize(0.04);
+MxPtSinD->GetYaxis()->SetLabelSize(0.025);
+MxPtSinD->GetZaxis()->SetTitle("2<sin(Delta phi)>");
+MxPtSinD->GetZaxis()->SetTitleSize(0.04);
+MxPtSinD->GetZaxis()->SetLabelSize(0.025);
+MxPtSinD->SetStats(0);
+outTree->Draw(sinphi3+":Mx:pTpT>>MxPtSinD");
+MxPtSinD->Draw("BOX");
+///////////////////////////////////////////////////////////////
+TCanvas*c016 = new TCanvas("c016", "PKplus", 1600,1100);
+c016->Divide(1,1);
+c016->Print("PtPMx3D.pdf[");
+TH2F*PtPMx = new TH2F("PtPMx","PtPMx",100, 0,50,0,2.2);
+c016->cd(1);
+PtPMx->GetXaxis()->SetTitle("pT Proton");
+PtPMx->GetXaxis()->SetTitleSize(0.03);
+PtPMx->GetXaxis()->SetTitleOffset(1.8);
+PtPMx->GetXaxis()->SetLabelSize(0.04);
+PtPMx->GetYaxis()->SetTitle("Mx");
+PtPMx->GetYaxis()->SetTitleSize(0.04);
+PtPMx->GetYaxis()->SetTitleOffset(1.3);
+PtPMx->GetYaxis()->SetLabelSize(0.025);
+PtPMx->SetStats(0);
+outTree->Draw("Mx:pT1>>PtPMx");
+PtPMx->Draw("SURF");
+TCanvas*c019 = new TCanvas("c019", "PKplus", 1600,1100);
+c019->Divide(1,1);
+c019->Print("PtPMx.pdf[");
+c019->cd(1);
+PtPMx->Draw("COL");
+///////////////////////////////////////////////////////////////
+TCanvas*c017 = new TCanvas("c017", "PKplus", 1600,1100);
+c017->Divide(1,1);
+c017->Print("PtKMx3D.pdf[");
+TH2F*PtKMx = new TH2F("PtKMx","PtKMx",100, 0,50,0,2.2);
+c017->cd(1);
+PtKMx->GetXaxis()->SetTitle("pT Kaon");
+PtKMx->GetXaxis()->SetTitleSize(0.03);
+PtKMx->GetXaxis()->SetTitleOffset(1.8);
+PtKMx->GetXaxis()->SetLabelSize(0.04);
+PtKMx->GetYaxis()->SetTitle("Mx");
+PtKMx->GetYaxis()->SetTitleSize(0.04);
+PtKMx->GetYaxis()->SetTitleOffset(1.3);
+PtKMx->GetYaxis()->SetLabelSize(0.025);
+PtKMx->SetStats(0);
+outTree->Draw("Mx:pT2>>PtKMx");
+PtKMx->Draw("SURF");
+TCanvas*c020 = new TCanvas("c020", "PKplus", 1600,1100);
+c020->Divide(1,1);
+c020->Print("PtKMx.pdf[");
+c020->cd(1);
+PtKMx->Draw("COL");
+///////////////////////////////////////////////////////////////
+TCanvas*c022 = new TCanvas("c022", "PKplus", 1600,1100);
+c022->Divide(1,1);
+c022->Print("Sinphi.pdf[");
+TH1F*Sinphi = new TH1F("Sinphi","Sinphi",100, -2,2);
+c022->cd(1);
+Sinphi->GetXaxis()->SetTitle("2<sin(phi proton)>");
+Sinphi->GetXaxis()->SetTitleSize(0.04);
+//Sinphi->GetXaxis()->SetTitleOffset(1.8);
+Sinphi->GetXaxis()->SetLabelSize(0.04);
+Sinphi->GetYaxis()->SetTitle("Counts");
+Sinphi->GetYaxis()->SetTitleSize(0.04);
+Sinphi->GetYaxis()->SetLabelSize(0.025);
+Sinphi->SetStats(0);
+outTree->Draw(sinphi+">>Sinphi");
+///////////////////////////////////////////////////////////////
+TCanvas*c027 = new TCanvas("c027", "PKplus", 1600,1100);
+c027->Divide(1,1);
+c027->Print("SinphiK.pdf[");
+TH1F*SinphiK = new TH1F("SinphiK","SinphiK",100, -2,2);
+c027->cd(1);
+SinphiK->GetXaxis()->SetTitle("2<sin(phi kaon)>");
+SinphiK->GetXaxis()->SetTitleSize(0.04);
+//SinphiK->GetXaxis()->SetTitleOffset(1.8);
+SinphiK->GetXaxis()->SetLabelSize(0.04);
+SinphiK->GetYaxis()->SetTitle("Counts");
+SinphiK->GetYaxis()->SetTitleSize(0.04);
+SinphiK->GetYaxis()->SetLabelSize(0.025);
+SinphiK->SetStats(0);
+outTree->Draw(sinphi2+">>SinphiK");
+///////////////////////////////////////////////////////////////
+TCanvas*c028 = new TCanvas("c028", "PKplus", 1600,1100);
+c028->Divide(1,1);
+c028->Print("SinphiD.pdf[");
+TH1F*SinphiD = new TH1F("SinphiD","SinphiD",100, -2,2);
+c028->cd(1);
+SinphiD->GetXaxis()->SetTitle("2<sin(Delta phi)>");
+SinphiD->GetXaxis()->SetTitleSize(0.04);
+//SinphiD->GetXaxis()->SetTitleOffset(1.8);
+SinphiD->GetXaxis()->SetLabelSize(0.04);
+SinphiD->GetYaxis()->SetTitle("Counts");
+SinphiD->GetYaxis()->SetTitleSize(0.04);
+SinphiD->GetYaxis()->SetLabelSize(0.025);
+SinphiD->SetStats(0);
+outTree->Draw(sinphi3+">>SinphiD");
+///////////////////////////////////////////////////////////////
+TCanvas*c031 = new TCanvas("c031", "PKplus", 1600,1100);
+c031->Divide(1,1);
+c031->Print("SinMx3D.pdf[");
+TH2F*PtSinK = new TH2F("SinMx","SinMx",100,0, 2.5, 100,-2,2);
+c031->cd(1);
+SinMx->GetXaxis()->SetTitle("Mx");
+SinMx->GetXaxis()->SetTitleSize(0.03);
+SinMx->GetXaxis()->SetTitleOffset(1.8);
+SinMx->GetXaxis()->SetLabelSize(0.04);
+SinMx->GetYaxis()->SetTitle("2<sin(Delta phi)>");
+SinMx->GetYaxis()->SetTitleSize(0.04);
+SinMx->GetYaxis()->SetTitleOffset(1.3);
+SinMx->GetYaxis()->SetLabelSize(0.025);
+SinMx->SetStats(0);
+outTree->Draw(sinphi3+":Mx>>SinMx");
+SinMx->Draw("SURF");
+TCanvas*c032 = new TCanvas("c032", "PKplus", 1600,1100);
+c032->Divide(1,1);
+c032->Print("SinMx.pdf[");
+c032->cd(1);
+SinMx->Draw("COL");
+
+
+TCanvas*c033 = new TCanvas("c033", "PKplus", 1600,1100);
+c033->Divide(1,1);
+c033->Print("pTpTM.pdf[");
+TH1F*pTpTM = new TH1F("pTpTM","pTpTM",100, 0,1);
+c033->cd(1);
+pTpTM->GetXaxis()->SetTitle("pTpT");
+pTpTM->GetXaxis()->SetTitleSize(0.04);
+//SinphiD->GetXaxis()->SetTitleOffset(1.8);
+pTpTM->GetXaxis()->SetLabelSize(0.04);
+pTpTM->GetYaxis()->SetTitle("Counts");
+pTpTM->GetYaxis()->SetTitleSize(0.04);
+pTpTM->GetYaxis()->SetLabelSize(0.025);
+pTpTM->SetStats(0);
+outTree->Draw(pTpTM1+">>pTpTM");
+///////////////////////////////////////////////////////////////
+TCanvas*c034 = new TCanvas("c034", "PKplus", 1600,1100);
+c034->Divide(1,1);
+c034->Print("y.pdf[");
+TH1F*Y = new TH1F("Y","Y",100, 0.2,0.8);
+c034->cd(1);
+Y->GetXaxis()->SetTitle("y");
+Y->GetXaxis()->SetTitleSize(0.04);
+Y->GetXaxis()->SetLabelSize(0.04);
+Y->GetYaxis()->SetTitle("Counts");
+Y->GetYaxis()->SetTitleSize(0.04);
+Y->GetYaxis()->SetLabelSize(0.025);
+Y->SetStats(0);
+outTree->Draw("y>>Y");
+///////////////////////////////////////////////////////////////
+TCanvas*c035 = new TCanvas("c035", "PKplus", 1600,1100);
+c035->Divide(1,1);
+c035->Print("xFPro.pdf[");
+TH1F*xFPro = new TH1F("xFPro","xFPro",100, -1,0.6);
+c035->cd(1);
+xFPro->GetXaxis()->SetTitle("x-Feynman Proton");
+xFPro->GetXaxis()->SetTitleSize(0.04);
+xFPro->GetXaxis()->SetLabelSize(0.04);
+xFPro->GetYaxis()->SetTitle("Counts");
+xFPro->GetYaxis()->SetTitleSize(0.04);
+xFPro->GetYaxis()->SetLabelSize(0.025);
+xFPro->SetStats(0);
+outTree->Draw("xF1>>xFPro");
+///////////////////////////////////////////////////////////////
+TCanvas*c036 = new TCanvas("c036", "PKplus", 1600,1100);
+c036->Divide(1,1);
+c036->Print("xFKaon.pdf[");
+TH1F*xFKaon = new TH1F("xFKaon","xFKaon",100, -0.2,0.8);
+c036->cd(1);
+xFKaon->GetXaxis()->SetTitle("x-Feynman Kaon");
+xFKaon->GetXaxis()->SetTitleSize(0.04);
+xFKaon->GetXaxis()->SetLabelSize(0.04);
+xFKaon->GetYaxis()->SetTitle("Counts");
+xFKaon->GetYaxis()->SetTitleSize(0.04);
+xFKaon->GetYaxis()->SetLabelSize(0.025);
+xFKaon->SetStats(0);
+outTree->Draw("xF2>>xFKaon");
+///////////////////////////////////////////////////////////////
+TCanvas*c037 = new TCanvas("c037", "PKplus", 1600,1100);
+c037->Divide(1,1);
+c037->Print("vzElec.pdf[");
+TH1F*vzElec = new TH1F("vzElec","vzElec",100, -10,4);
+c037->cd(1);
+vzElec->GetXaxis()->SetTitle("Electron Vertex");
+vzElec->GetXaxis()->SetTitleSize(0.04);
+vzElec->GetXaxis()->SetLabelSize(0.04);
+vzElec->GetYaxis()->SetTitle("Counts");
+vzElec->GetYaxis()->SetTitleSize(0.04);
+vzElec->GetYaxis()->SetLabelSize(0.025);
+vzElec->SetStats(0);
+outTree->Draw("vz_e>>vzElec");
+///////////////////////////////////////////////////////////////
+TCanvas*c038 = new TCanvas("c038", "PKplus", 1600,1100);
+c038->Divide(1,1);
+c038->Print("Kaonmom.pdf[");
+TH1F*Kaonmom = new TH1F("Kaonmom","Kaonmom",100, 1.2,5);
+c038->cd(1);
+Kaonmom->GetXaxis()->SetTitle("Kaon Momentum");
+Kaonmom->GetXaxis()->SetTitleSize(0.04);
+Kaonmom->GetXaxis()->SetLabelSize(0.04);
+Kaonmom->GetYaxis()->SetTitle("Counts");
+Kaonmom->GetYaxis()->SetTitleSize(0.04);
+Kaonmom->GetYaxis()->SetLabelSize(0.025);
+Kaonmom->SetStats(0);
+outTree->Draw("p2_p>>Kaonmom");
+///////////////////////////////////////////////////////////////
+TCanvas*c039 = new TCanvas("c039", "PKplus", 1600,1100);
+c039->Divide(1,1);
+c039->Print("Promom.pdf[");
+TH1F*Promom = new TH1F("Promom","Promom",100, 0,5);
+c039->cd(1);
+Promom->GetXaxis()->SetTitle("Proton Momentum");
+Promom->GetXaxis()->SetTitleSize(0.04);
+Promom->GetXaxis()->SetLabelSize(0.04);
+Promom->GetYaxis()->SetTitle("Counts");
+Promom->GetYaxis()->SetTitleSize(0.04);
+Promom->GetYaxis()->SetLabelSize(0.025);
+Promom->SetStats(0);
+outTree->Draw("p1_p>>Promom");
+///////////////////////////////////////////////////////////////
+c01->Print("Mxpk.pdf");
+c01->Print("Mxpk.pdf]");
+c02->Print("Protonphi.pdf");
+c02->Print("Protonphi.pdf]");
+c03->Print("Kaonphi.pdf");
+c03->Print("Kaonphi.pdf]");
+c04->Print("Deltaphi.pdf");
+c04->Print("Deltaphi.pdf]");
+c05->Print("DeltaphiPH.pdf");
+c05->Print("DeltaphiPH.pdf]");
+c06->Print("DeltaphiNH.pdf");
+c06->Print("DeltaphiNH.pdf]");
+c07->Print("DeltaphiDif.pdf");
+c07->Print("DeltaphiDif.pdf]");
+c08->Print("DeltaphiSum.pdf");
+c08->Print("DeltaphiSum.pdf]");
+c09->Print("AsymNC.pdf");
+c09->Print("AsymNC.pdf]");
+c010->Print("pTpTMx3D.pdf");
+c010->Print("pTpTMx3D.pdf]");
+c011->Print("PtPt.pdf");
+c011->Print("PtPt.pdf]");
+c012->Print("PtKaon.pdf");
+c012->Print("PtKaon.pdf]");
+c013->Print("PtPro.pdf");
+c013->Print("PtPro.pdf]");
+c014->Print("PtSinP3D.pdf");
+c014->Print("PtSinP3D.pdf]");
+c015->Print("MxPtSin.pdf");
+c015->Print("MxPtSin.pdf]");
+c016->Print("PtPMx3D.pdf");
+c016->Print("PtPMx3D.pdf]");
+c017->Print("PtKMx3D.pdf");
+c017->Print("PtKMx3D.pdf]");
+c018->Print("PtSinP.pdf");
+c018->Print("PtSinP.pdf]");
+c019->Print("PtPMx.pdf");
+c019->Print("PtPMx.pdf]");
+c020->Print("PtKMx.pdf");
+c020->Print("PtKMx.pdf]");
+c021->Print("pTpTMx.pdf");
+c021->Print("pTpTMx.pdf]");
+c022->Print("Sinphi.pdf");
+c022->Print("Sinphi.pdf]");
+c023->Print("PtSinK3D.pdf");
+c023->Print("PtSinK3D.pdf]");
+c024->Print("PtSinK.pdf");
+c024->Print("PtSinK.pdf]");
+c025->Print("PtPtSin3D.pdf");
+c025->Print("PtPtSin3D.pdf]");
+c026->Print("PtPtSin.pdf");
+c026->Print("PtPtSin.pdf]");
+c027->Print("SinphiK.pdf");
+c027->Print("SinphiK.pdf]");
+c028->Print("SinphiD.pdf");
+c028->Print("SinphiD.pdf]");
+c029->Print("MxPtSinK.pdf");
+c029->Print("MxPtSinK.pdf]");
+c030->Print("MxPtSinD.pdf");
+c030->Print("MxPtSinD.pdf]");
+c031->Print("SinMx3D.pdf");
+c031->Print("SinMx3D.pdf]");
+c032->Print("SinMx.pdf");
+c032->Print("SinMx.pdf]");
+c033->Print("pTpTM.pdf");
+c033->Print("pTpTM.pdf]");
+c034->Print("y.pdf");
+c034->Print("y.pdf]");
+c035->Print("xFPro.pdf");
+c035->Print("xFPro.pdf]");
+c036->Print("xFKaon.pdf");
+c036->Print("xFKaon.pdf]");
+c037->Print("vzElec.pdf");
+c037->Print("vzElec.pdf]");
+c038->Print("Kaonmom.pdf");
+c038->Print("Kaonmom.pdf]");
+c039->Print("Promom.pdf");
+c039->Print("Promom.pdf]");
+}
+
+
+
+
+
